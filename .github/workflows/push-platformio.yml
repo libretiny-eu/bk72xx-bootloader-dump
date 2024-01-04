@@ -8,20 +8,25 @@ on:
       - src/
       - platformio.ini
 jobs:
-  version:
-    name: Get version numbers
-    uses: kuba2k2/kuba2k2/.github/workflows/version.yml@master
   lint-clang:
     name: Run Clang lint
     uses: kuba2k2/kuba2k2/.github/workflows/lint-clang.yml@master
+  version:
+    name: Get version numbers
+    uses: kuba2k2/kuba2k2/.github/workflows/version.yml@master
   build-pio:
     name: Build PlatformIO project
     needs:
       - lint-clang
+      - version
     uses: kuba2k2/kuba2k2/.github/workflows/build-pio.yml@master
     with:
+      pre-build: |
+        pip install --upgrade ltchiptool
+      post-build: |
+        bash post-build.sh ${{ needs.version.outputs.now-long }}
       files: |
-        .pio/build/*/*.rbl
+        dist/*.rbl
   gh-release:
     name: Publish GitHub release
     needs:
@@ -32,4 +37,4 @@ jobs:
       contents: write
     with:
       artifact: ${{ needs.build-pio.outputs.artifact }}
-      name: v${{ needs.version.outputs.git-long }}
+      name: v${{ needs.version.outputs.now-long }}
