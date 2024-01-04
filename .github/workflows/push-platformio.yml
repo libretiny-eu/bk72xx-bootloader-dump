@@ -1,0 +1,35 @@
+name: Push (PlatformIO)
+on:
+  workflow_dispatch:
+  push:
+    branches: ["master"]
+    paths:
+      - .github/workflows/push-platformio.yml
+      - src/
+      - platformio.ini
+jobs:
+  version:
+    name: Get version numbers
+    uses: kuba2k2/kuba2k2/.github/workflows/version.yml@master
+  lint-clang:
+    name: Run Clang lint
+    uses: kuba2k2/kuba2k2/.github/workflows/lint-clang.yml@master
+  build-pio:
+    name: Build PlatformIO project
+    needs:
+      - lint-clang
+    uses: kuba2k2/kuba2k2/.github/workflows/build-pio.yml@master
+    with:
+      files: |
+        .pio/build/*/*.rbl
+  gh-release:
+    name: Publish GitHub release
+    needs:
+      - version
+      - build-pio
+    uses: kuba2k2/kuba2k2/.github/workflows/gh-release.yml@master
+    permissions:
+      contents: write
+    with:
+      artifact: ${{ needs.build-pio.outputs.artifact }}
+      name: v${{ needs.version.outputs.git-long }}
