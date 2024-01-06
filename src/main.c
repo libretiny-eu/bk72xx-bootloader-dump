@@ -43,7 +43,7 @@ extern uint32_t crc32(const void *buf, uint32_t size);
 bool read_rbl(bk_rbl_hdr_t *rbl) {
 	uint8_t buf[RBL_SIZE_CRC];
 
-	for (uint32_t end = 0xF000; end <= 0x11000; end += 0x1000) {
+	for (uint32_t end = 0xEE00; end <= 0x11000; end += 0x1100) {
 		if (lt_flash_read(end - RBL_SIZE_CRC, buf, RBL_SIZE_CRC) != RBL_SIZE_CRC) {
 			LT_W("Couldn't read flash @ 0x%x-102", end);
 			continue;
@@ -132,7 +132,7 @@ int main() {
 		fal_part_t *part = (fal_part_t *)fal_buf;
 
 		LT_I(" - FAL partition '%s' (0x%06X+0x%X)", part->part_name, part->offset, part->length);
-		LT_I("    -> copied from logical:0x%x/physical:0x%x", fal_addr, fal_offs);
+		// LT_I("    -> copied from logical:0x%x/physical:0x%x", fal_addr, fal_offs);
 		if (strcmp(part->flash_name, FAL_BEKEN_CRC) == 0)
 			LT_I("    -> calculated physical bounds: (0x%06X+0x%X)", part->offset / 32 * 34, part->length / 32 * 34);
 		memcpy(bootloader + fal_addr, fal_buf, FAL_SIZE);
